@@ -9,6 +9,7 @@ type SessionResult = Awaited<ReturnType<typeof authClient.getSession>>;
 let cachedSession: SessionResult | null = null;
 let cachedSessionExpiresAt = 0;
 let inflightSession: Promise<SessionResult> | null = null;
+let cacheGeneration = 0;
 
 async function getCachedSession() {
   const now = Date.now();
@@ -21,9 +22,13 @@ async function getCachedSession() {
     return inflightSession;
   }
 
+  const generationAtRequestStart = cacheGeneration;
+
   inflightSession = authClient.getSession().then((session) => {
-    cachedSession = session;
-    cachedSessionExpiresAt = Date.now() + SESSION_CACHE_TTL_MS;
+    if (generationAtRequestStart === cacheGeneration) {
+      cachedSession = session;
+      cachedSessionExpiresAt = Date.now() + SESSION_CACHE_TTL_MS;
+    }
 
     return session;
   });
@@ -36,6 +41,7 @@ async function getCachedSession() {
 }
 
 export function invalidateSessionCache() {
+  cacheGeneration += 1;
   cachedSession = null;
   cachedSessionExpiresAt = 0;
   inflightSession = null;

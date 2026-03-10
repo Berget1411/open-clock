@@ -31,7 +31,7 @@ export default function NavMain({ items }: NavMainProps) {
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild isActive={pathname === item.to} tooltip={item.title}>
-                <Link to={item.to as never}>
+                <Link to={item.to}>
                   <item.icon />
                   <span>{item.title}</span>
                 </Link>

@@ -13,8 +13,10 @@ import { Route as SuccessRouteImport } from './routes/success'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AcceptInvitationInvitationIdRouteImport } from './routes/accept-invitation.$invitationId'
 import { Route as AppTrackerRouteImport } from './routes/_app.tracker'
 import { Route as AppTodosRouteImport } from './routes/_app.todos'
+import { Route as AppTeamsRouteImport } from './routes/_app.teams'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppAiRouteImport } from './routes/_app.ai'
 
@@ -37,6 +39,12 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AcceptInvitationInvitationIdRoute =
+  AcceptInvitationInvitationIdRouteImport.update({
+    id: '/accept-invitation/$invitationId',
+    path: '/accept-invitation/$invitationId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AppTrackerRoute = AppTrackerRouteImport.update({
   id: '/tracker',
   path: '/tracker',
@@ -45,6 +53,11 @@ const AppTrackerRoute = AppTrackerRouteImport.update({
 const AppTodosRoute = AppTodosRouteImport.update({
   id: '/todos',
   path: '/todos',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTeamsRoute = AppTeamsRouteImport.update({
+  id: '/teams',
+  path: '/teams',
   getParentRoute: () => AppRoute,
 } as any)
 const AppReportsRoute = AppReportsRouteImport.update({
@@ -64,16 +77,20 @@ export interface FileRoutesByFullPath {
   '/success': typeof SuccessRoute
   '/ai': typeof AppAiRoute
   '/reports': typeof AppReportsRoute
+  '/teams': typeof AppTeamsRoute
   '/todos': typeof AppTodosRoute
   '/tracker': typeof AppTrackerRoute
+  '/accept-invitation/$invitationId': typeof AcceptInvitationInvitationIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/success': typeof SuccessRoute
   '/ai': typeof AppAiRoute
   '/reports': typeof AppReportsRoute
+  '/teams': typeof AppTeamsRoute
   '/todos': typeof AppTodosRoute
   '/tracker': typeof AppTrackerRoute
+  '/accept-invitation/$invitationId': typeof AcceptInvitationInvitationIdRoute
   '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -83,8 +100,10 @@ export interface FileRoutesById {
   '/success': typeof SuccessRoute
   '/_app/ai': typeof AppAiRoute
   '/_app/reports': typeof AppReportsRoute
+  '/_app/teams': typeof AppTeamsRoute
   '/_app/todos': typeof AppTodosRoute
   '/_app/tracker': typeof AppTrackerRoute
+  '/accept-invitation/$invitationId': typeof AcceptInvitationInvitationIdRoute
   '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -95,10 +114,21 @@ export interface FileRouteTypes {
     | '/success'
     | '/ai'
     | '/reports'
+    | '/teams'
     | '/todos'
     | '/tracker'
+    | '/accept-invitation/$invitationId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/success' | '/ai' | '/reports' | '/todos' | '/tracker' | '/'
+  to:
+    | '/login'
+    | '/success'
+    | '/ai'
+    | '/reports'
+    | '/teams'
+    | '/todos'
+    | '/tracker'
+    | '/accept-invitation/$invitationId'
+    | '/'
   id:
     | '__root__'
     | '/_app'
@@ -106,8 +136,10 @@ export interface FileRouteTypes {
     | '/success'
     | '/_app/ai'
     | '/_app/reports'
+    | '/_app/teams'
     | '/_app/todos'
     | '/_app/tracker'
+    | '/accept-invitation/$invitationId'
     | '/_app/'
   fileRoutesById: FileRoutesById
 }
@@ -115,6 +147,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
   SuccessRoute: typeof SuccessRoute
+  AcceptInvitationInvitationIdRoute: typeof AcceptInvitationInvitationIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -147,6 +180,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/accept-invitation/$invitationId': {
+      id: '/accept-invitation/$invitationId'
+      path: '/accept-invitation/$invitationId'
+      fullPath: '/accept-invitation/$invitationId'
+      preLoaderRoute: typeof AcceptInvitationInvitationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/tracker': {
       id: '/_app/tracker'
       path: '/tracker'
@@ -159,6 +199,13 @@ declare module '@tanstack/react-router' {
       path: '/todos'
       fullPath: '/todos'
       preLoaderRoute: typeof AppTodosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/teams': {
+      id: '/_app/teams'
+      path: '/teams'
+      fullPath: '/teams'
+      preLoaderRoute: typeof AppTeamsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/reports': {
@@ -181,6 +228,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppAiRoute: typeof AppAiRoute
   AppReportsRoute: typeof AppReportsRoute
+  AppTeamsRoute: typeof AppTeamsRoute
   AppTodosRoute: typeof AppTodosRoute
   AppTrackerRoute: typeof AppTrackerRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -189,6 +237,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAiRoute: AppAiRoute,
   AppReportsRoute: AppReportsRoute,
+  AppTeamsRoute: AppTeamsRoute,
   AppTodosRoute: AppTodosRoute,
   AppTrackerRoute: AppTrackerRoute,
   AppIndexRoute: AppIndexRoute,
@@ -200,6 +249,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
   SuccessRoute: SuccessRoute,
+  AcceptInvitationInvitationIdRoute: AcceptInvitationInvitationIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

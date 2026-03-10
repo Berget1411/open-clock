@@ -63,11 +63,12 @@ export function getDefaultManualValues() {
   const end = new Date(now);
   const start = new Date(now);
   start.setMinutes(0, 0, 0);
-  end.setHours(start.getHours() + 1);
-
-  return {
-    description: "",
-    date: toLocalDateInputValue(start),
+  const nextHour = start.getHours() + 1;
+  if (nextHour >= 24) {
+    end.setHours(23, 59, 0, 0);
+  } else {
+    end.setHours(nextHour, 0, 0, 0);
+  }
     startTime: toLocalTimeInputValue(start),
     endTime: toLocalTimeInputValue(end),
     projectId: null as number | null,

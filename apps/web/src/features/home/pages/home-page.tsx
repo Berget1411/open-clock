@@ -17,7 +17,7 @@ export default function HomePage() {
             href="/home"
             className="inline-flex items-center gap-3 text-sm font-medium text-white/90"
           >
-            <span className="flex size-8 items-center justify-center rounded-lg border border-white/10 bg-white/5">
+            <span className="flex size-8 items-center justify-center  border border-white/10 bg-white/5">
               <Clock3Icon className="size-4" />
             </span>
             <span>Open Clock</span>

@@ -35,11 +35,13 @@ interface Tag {
 
 interface TagRowProps {
   tag: Tag;
+  selected: boolean;
+  onToggleSelect: () => void;
   onSave: (id: number, name: string) => void;
   onDelete: (id: number) => void;
 }
 
-function TagRow({ tag, onSave, onDelete }: TagRowProps) {
+function TagRow({ tag, selected, onToggleSelect, onSave, onDelete }: TagRowProps) {
   const [editing, setEditing] = React.useState(false);
   const [value, setValue] = React.useState(tag.name);
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -79,7 +81,11 @@ function TagRow({ tag, onSave, onDelete }: TagRowProps) {
   return (
     <TableRow className="group">
       <TableCell>
-        <Checkbox aria-label={`Select ${tag.name}`} />
+        <Checkbox
+          checked={selected}
+          onCheckedChange={onToggleSelect}
+          aria-label={`Select ${tag.name}`}
+        />
       </TableCell>
       <TableCell>
         {editing ? (
@@ -142,12 +148,51 @@ export function TagsTable() {
 
   const [search, setSearch] = React.useState("");
   const [newTagName, setNewTagName] = React.useState("");
+  const [selectedIds, setSelectedIds] = React.useState<Set<number>>(new Set());
 
   const tags: Tag[] = tagsQuery.data ?? [];
 
   const filtered = search.trim()
     ? tags.filter((t) => t.name.toLowerCase().includes(search.toLowerCase()))
     : tags;
+
+  function toggleSelect(id: number) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      const areAllFilteredSelected =
+        filtered.length > 0 && filtered.every((tag) => prev.has(tag.id));
+
+      if (areAllFilteredSelected) {
+        for (const tag of filtered) {
+          next.delete(tag.id);
+        }
+      } else {
+        for (const tag of filtered) {
+          next.add(tag.id);
+        }
+      }
+      return next;
+    });
+  }
+
+  const selectedFilteredCount = filtered.reduce(
+    (count, tag) => (selectedIds.has(tag.id) ? count + 1 : count),
+    0,
+  );
+  const allSelected = filtered.length > 0 && selectedFilteredCount === filtered.length;
+  const someSelected = selectedFilteredCount > 0 && selectedFilteredCount < filtered.length;
 
   function handleAdd() {
     const name = newTagName.trim();
@@ -208,7 +253,11 @@ export function TagsTable() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-10">
-                <Checkbox aria-label="Select all" />
+                <Checkbox
+                  checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                  onCheckedChange={toggleSelectAll}
+                  aria-label="Select all"
+                />
               </TableHead>
               <TableHead>{TAGS_COPY.columnName}</TableHead>
               <TableHead className="w-24" />
@@ -237,7 +286,14 @@ export function TagsTable() {
               </TableRow>
             ) : (
               filtered.map((tag) => (
-                <TagRow key={tag.id} tag={tag} onSave={handleSave} onDelete={handleDelete} />
+                <TagRow
+                  key={tag.id}
+                  tag={tag}
+                  selected={selectedIds.has(tag.id)}
+                  onToggleSelect={() => toggleSelect(tag.id)}
+                  onSave={handleSave}
+                  onDelete={handleDelete}
+                />
               ))
             )}
           </TableBody>

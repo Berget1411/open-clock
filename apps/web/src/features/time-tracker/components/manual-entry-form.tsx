@@ -1,3 +1,4 @@
+import type { TaskListItem } from "@open-learn/api/modules/task/task.schema";
 import type {
   TrackerProject,
   TrackerTag,
@@ -5,6 +6,7 @@ import type {
 import type { TrackerOverviewRange } from "../utils/date-time";
 
 import { useForm } from "@tanstack/react-form";
+import { useState } from "react";
 import { z } from "zod";
 import { Button } from "@open-learn/ui/components/button";
 import { FieldError } from "@open-learn/ui/components/field";
@@ -17,6 +19,7 @@ import {
   formatRelativeDateLabel,
   getDefaultManualValues,
 } from "../utils/date-time";
+import { ActivityReferenceInput } from "./activity-reference-input";
 import { CompactBillableToggle } from "./compact-billable-toggle";
 import { CompactDatePicker } from "./compact-date-picker";
 import { CompactProjectPicker } from "./compact-project-picker";
@@ -29,6 +32,7 @@ const manualEntrySchema = z
     startTime: z.string().min(1, "Start time is required"),
     endTime: z.string().min(1, "End time is required"),
     projectId: z.number().nullable(),
+    taskId: z.number().nullable(),
     tagIds: z.array(z.number()),
     isBillable: z.boolean(),
   })
@@ -47,11 +51,13 @@ const manualEntrySchema = z
 
 interface ManualEntryFormProps {
   projects: TrackerProject[];
+  tasks: TaskListItem[];
   tags: TrackerTag[];
   range: TrackerOverviewRange;
 }
 
-export function ManualEntryForm({ projects, tags, range }: ManualEntryFormProps) {
+export function ManualEntryForm({ projects, tasks, tags, range }: ManualEntryFormProps) {
+  const [activityMode, setActivityMode] = useState<"description" | "task">("description");
   const createManualEntry = useCreateManualEntry(range);
   const form = useForm({
     defaultValues: getDefaultManualValues(),
@@ -67,6 +73,7 @@ export function ManualEntryForm({ projects, tags, range }: ManualEntryFormProps)
       await createManualEntry.mutateAsync({
         description: value.description.trim(),
         projectId: value.projectId,
+        taskId: value.taskId,
         tagIds: value.tagIds,
         isBillable: value.isBillable,
         startAt: startAt.toISOString(),
@@ -74,6 +81,7 @@ export function ManualEntryForm({ projects, tags, range }: ManualEntryFormProps)
       });
 
       form.reset(getDefaultManualValues());
+      setActivityMode("description");
     },
   });
 
@@ -104,17 +112,25 @@ export function ManualEntryForm({ projects, tags, range }: ManualEntryFormProps)
                 return (
                   <>
                     <div className="flex flex-col gap-2 rounded-none border bg-card p-2 md:flex-row md:items-center md:gap-2">
-                      <div className="min-w-0 flex-1">
-                        <Input
-                          id="manual-description"
-                          value={descriptionField.state.value}
-                          onBlur={descriptionField.handleBlur}
-                          onChange={(event) => descriptionField.handleChange(event.target.value)}
-                          aria-invalid={descriptionInvalid}
-                          placeholder="What have you worked on? (optional)"
-                          className="h-10 text-sm"
-                        />
-                      </div>
+                      <form.Field name="taskId">
+                        {(taskField) => (
+                          <ActivityReferenceInput
+                            mode={activityMode}
+                            onModeChange={setActivityMode}
+                            description={{
+                              id: "manual-description",
+                              value: descriptionField.state.value,
+                              onBlur: descriptionField.handleBlur,
+                              onChange: descriptionField.handleChange,
+                              isInvalid: descriptionInvalid,
+                              placeholder: "What have you worked on? (optional)",
+                            }}
+                            taskId={taskField.state.value}
+                            onTaskChange={taskField.handleChange}
+                            tasks={tasks}
+                          />
+                        )}
+                      </form.Field>
 
                       <form.Field name="projectId">
                         {(projectField) => (
@@ -214,7 +230,7 @@ export function ManualEntryForm({ projects, tags, range }: ManualEntryFormProps)
                       </form.Subscribe>
                     </div>
 
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1 px-2 pb-2">
                       <FieldError errors={descriptionField.state.meta.errors} />
                       <form.Field name="date">
                         {(field) => <FieldError errors={field.state.meta.errors} />}

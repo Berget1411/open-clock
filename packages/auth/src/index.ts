@@ -31,12 +31,13 @@ export const auth = betterAuth({
       clientSecret: env.GITHUB_CLIENT_SECRET,
     },
   },
-  session: {
-    cookieCache: {
-      enabled: !!workersDomain,
-      maxAge: 60,
-    },
-  },
+  // uncomment cookieCache setting when ready to deploy to Cloudflare using *.workers.dev domains
+  // session: {
+  //   cookieCache: {
+  //     enabled: true,
+  //     maxAge: 60,
+  //   },
+  // },
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
   advanced: {
@@ -45,12 +46,12 @@ export const auth = betterAuth({
       secure: true,
       httpOnly: true,
     },
-    ...(workersDomain && {
-      crossSubDomainCookies: {
-        enabled: true,
-        domain: workersDomain,
-      },
-    }),
+    // uncomment crossSubDomainCookies setting when ready to deploy and replace <your-workers-subdomain> with your actual workers subdomain
+    // https://developers.cloudflare.com/workers/wrangler/configuration/#workersdev
+    // crossSubDomainCookies: {
+    //   enabled: true,
+    //   domain: "<your-workers-subdomain>",
+    // },
   },
   plugins: [
     organization({

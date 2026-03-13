@@ -15,13 +15,6 @@ const database: BetterAuthOptions["database"] = drizzleAdapter(db, {
   schema: schema,
 });
 
-// Derive shared parent domain for cross-subdomain cookies when deployed on workers.dev.
-// e.g. "https://open-clock-web-dev.ludvig1411.workers.dev" → ".ludvig1411.workers.dev"
-// Falls back to undefined for local development so cookies stay scoped to localhost.
-const workersDomain = env.CORS_ORIGIN.includes("workers.dev")
-  ? `.${new URL(env.CORS_ORIGIN).hostname.split(".").slice(-3).join(".")}`
-  : undefined;
-
 export const auth = betterAuth({
   database,
   trustedOrigins: [env.CORS_ORIGIN],

@@ -32,7 +32,7 @@ export function CalendarActiveTimerCard({ activeEntry, now, range }: CalendarAct
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <CardTitle className="flex items-center gap-2 text-sm">
-              <Clock3Icon className="size-3.5 text-[hsl(174_84%_32%)]" />
+              <Clock3Icon className="size-3.5 text-tracked" />
               Active timer
             </CardTitle>
             <CardDescription>

@@ -162,16 +162,20 @@ export default function CalendarPage() {
       return;
     }
 
-    await updateEntry.mutateAsync({
-      entryId: entry.id,
-      description: entry.description.trim(),
-      projectId: entry.project?.id ?? null,
-      taskId: entry.task?.id ?? null,
-      tagIds: entry.tags.map((tag) => tag.id),
-      isBillable: entry.isBillable,
-      startAt: new Date(start).toISOString(),
-      endAt: new Date(end).toISOString(),
-    });
+    try {
+      await updateEntry.mutateAsync({
+        entryId: entry.id,
+        description: entry.description.trim(),
+        projectId: entry.project?.id ?? null,
+        taskId: entry.task?.id ?? null,
+        tagIds: entry.tags.map((tag) => tag.id),
+        isBillable: entry.isBillable,
+        startAt: new Date(start).toISOString(),
+        endAt: new Date(end).toISOString(),
+      });
+    } catch {
+      // useUpdateEntry handles rollback + user-facing errors in its onError callback.
+    }
   };
 
   const isLoading = (trackerOverview.isLoading && !trackerOverview.data) || tasksQuery.isLoading;
@@ -207,45 +211,49 @@ export default function CalendarPage() {
 
       {isLoading ? (
         <Skeleton className="h-[calc(100vh-18rem)] min-h-[42rem] w-full border" />
-      ) : visibleEvents.length === 0 ? (
-        <Empty className="border bg-card py-16 ring-1 ring-foreground/10">
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <CalendarClockIcon className="size-4" />
-            </EmptyMedia>
-            <EmptyTitle>{CALENDAR_COPY.emptyTitle}</EmptyTitle>
-            <EmptyDescription>{CALENDAR_COPY.emptyDescription}</EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button
-              type="button"
-              className="h-8 px-3"
-              onClick={() => {
-                const start = new Date();
-                start.setMinutes(0, 0, 0);
-                setSheetState({
-                  mode: "create",
-                  entry: null,
-                  selection: { start, end: getDefaultSlotEnd(start) },
-                });
-              }}
-            >
-              {CALENDAR_COPY.createEntry}
-            </Button>
-          </EmptyContent>
-        </Empty>
       ) : (
-        <TrackerCalendar
-          view={view}
-          date={focusedDate}
-          events={visibleEvents}
-          onViewChange={setView}
-          onNavigate={setFocusedDate}
-          onSelectEvent={handleSelectEvent}
-          onSelectSlot={handleSelectSlot}
-          onEventDrop={persistEventTimeChange}
-          onEventResize={persistEventTimeChange}
-        />
+        <div className="flex flex-col gap-4">
+          {visibleEvents.length === 0 ? (
+            <Empty className="border bg-card py-10 ring-1 ring-foreground/10">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <CalendarClockIcon className="size-4" />
+                </EmptyMedia>
+                <EmptyTitle>{CALENDAR_COPY.emptyTitle}</EmptyTitle>
+                <EmptyDescription>{CALENDAR_COPY.emptyDescription}</EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <Button
+                  type="button"
+                  className="h-8 px-3"
+                  onClick={() => {
+                    const start = new Date();
+                    start.setMinutes(0, 0, 0);
+                    setSheetState({
+                      mode: "create",
+                      entry: null,
+                      selection: { start, end: getDefaultSlotEnd(start) },
+                    });
+                  }}
+                >
+                  {CALENDAR_COPY.createEntry}
+                </Button>
+              </EmptyContent>
+            </Empty>
+          ) : null}
+
+          <TrackerCalendar
+            view={view}
+            date={focusedDate}
+            events={visibleEvents}
+            onViewChange={setView}
+            onNavigate={setFocusedDate}
+            onSelectEvent={handleSelectEvent}
+            onSelectSlot={handleSelectSlot}
+            onEventDrop={persistEventTimeChange}
+            onEventResize={persistEventTimeChange}
+          />
+        </div>
       )}
 
       <CalendarEntrySheet

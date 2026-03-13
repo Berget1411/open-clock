@@ -42,6 +42,24 @@ import {
   toLocalTimeInputValue,
 } from "../utils/date-time";
 
+function getCalendarEntryDateRange(date: string, startTime: string, endTime: string) {
+  const startAt = combineDateAndTime(date, startTime);
+  const endAt = combineDateAndTime(date, endTime);
+
+  if (!startAt || !endAt) {
+    return null;
+  }
+
+  if (endAt < startAt) {
+    const nextDayEnd = new Date(endAt);
+    nextDayEnd.setDate(nextDayEnd.getDate() + 1);
+
+    return { startAt, endAt: nextDayEnd };
+  }
+
+  return { startAt, endAt };
+}
+
 const calendarEntrySchema = z
   .object({
     description: z.string().max(500, "Description must be 500 characters or less"),
@@ -54,10 +72,9 @@ const calendarEntrySchema = z
     isBillable: z.boolean(),
   })
   .superRefine((value, ctx) => {
-    const startAt = combineDateAndTime(value.date, value.startTime);
-    const endAt = combineDateAndTime(value.date, value.endTime);
+    const entryRange = getCalendarEntryDateRange(value.date, value.startTime, value.endTime);
 
-    if (!startAt || !endAt || endAt <= startAt) {
+    if (!entryRange || entryRange.endAt <= entryRange.startAt) {
       ctx.addIssue({
         code: "custom",
         message: "End time must be after start time",
@@ -123,10 +140,9 @@ export function CalendarEntrySheet({
     defaultValues: initialValues,
     validators: { onSubmit: calendarEntrySchema },
     onSubmit: async ({ value }) => {
-      const startAt = combineDateAndTime(value.date, value.startTime);
-      const endAt = combineDateAndTime(value.date, value.endTime);
+      const entryRange = getCalendarEntryDateRange(value.date, value.startTime, value.endTime);
 
-      if (!startAt || !endAt) {
+      if (!entryRange || entryRange.endAt <= entryRange.startAt) {
         return;
       }
 
@@ -136,8 +152,8 @@ export function CalendarEntrySheet({
         taskId: value.taskId,
         tagIds: value.tagIds,
         isBillable: value.isBillable,
-        startAt: startAt.toISOString(),
-        endAt: endAt.toISOString(),
+        startAt: entryRange.startAt.toISOString(),
+        endAt: entryRange.endAt.toISOString(),
       };
 
       if (mode === "edit" && entry) {

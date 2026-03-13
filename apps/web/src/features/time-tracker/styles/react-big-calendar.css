@@ -1,6 +1,6 @@
 .open-clock-calendar {
-  --calendar-billable: hsl(200 78% 46%);
-  --calendar-tracked: hsl(174 84% 32%);
+  --calendar-billable: var(--color-billable);
+  --calendar-tracked: var(--color-tracked);
   --calendar-active: color-mix(in srgb, var(--foreground) 12%, transparent);
   --calendar-grid: color-mix(in srgb, var(--border) 90%, transparent);
 }
